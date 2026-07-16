@@ -1,0 +1,1 @@
+{"name":"noryn-agro","version":"0.1.0","private":true,"description":"MVP local para monitoramento agropecuário da Noryn Agro","engines":{"node":">=18"},"scripts":{"start":"node src/server.js","dev":"node src/server.js --dev"},"dependencies":{},"devDependencies":{}}
