@@ -2,18 +2,15 @@
 
 MVP local para testar uma plataforma vendável de pecuária leiteira de precisão.
 
-A versão atual simula um **centro de comando da fazenda**, com:
+A versão atual foi reorganizada para um público menos técnico, com **tema claro**, navegação simples e páginas separadas:
 
-- dashboard executivo de produção, conforto térmico, solo, chuva e vento;
-- mapa visual de piquetes com umidade, status, área, histórico e recomendação de manejo;
-- animações dinâmicas de chuva, vento, nuvens, sol e direção do vento;
-- ranking das melhores vacas produtoras;
-- controle visual de estoque para ração, medicamentos, higiene, volumoso e insumos;
-- área de upload visual de documentos da fazenda;
-- calendário operacional para CCS/CBT, IATF, vacinação, adubação, compras e manutenção;
-- API HTTP pronta para receber pacotes de sensores LoRa/Raspberry.
+- **Painel geral**: visão executiva de produção, clima, alertas, ranking e últimas leituras.
+- **Piquetes**: mapa visual da fazenda, piquete ativo, umidade do solo, histórico e recomendação de irrigação.
+- **Estoque**: controle detalhado de ração, volumoso, medicamentos, higiene e insumos, com autonomia em dias, validade, fornecedor, consumo médio e sugestão de compra.
+- **Planejamento**: calendário operacional para manejos, IATF, qualidade do leite, manutenção, compras e adubação.
+- **Documentos**: central para simular upload e organização de notas fiscais, análises de solo, receitas, contratos e relatórios.
 
-A ideia é começar com dados simulados e lançamento manual, validar a experiência do produto e depois conectar sensores reais.
+A ideia continua sendo começar com dados simulados e lançamento manual, validar a experiência do produto e depois conectar sensores reais via LoRa/Raspberry Pi.
 
 ## Como rodar
 
@@ -32,6 +29,16 @@ http://localhost:3000
 ```
 
 Não há dependências externas neste MVP. Os dados ficam em `data/readings.json`, criado automaticamente na primeira execução.
+
+## Páginas
+
+```text
+/                Painel geral
+/paddocks.html   Piquetes e irrigação
+/inventory.html  Controle de estoque
+/planning.html   Planejamento
+/documents.html  Documentos
+```
 
 ## Endpoints principais
 
@@ -89,23 +96,6 @@ Exemplo para piquete:
 }
 ```
 
-Exemplo para produção de leite:
+## Próximo passo técnico
 
-```json
-{
-  "type": "milk",
-  "source": "tanque",
-  "milkLiters": 1018,
-  "lactatingCows": 60,
-  "notes": "Tanque da manhã"
-}
-```
-
-## Próximos passos técnicos
-
-1. Persistir documentos de verdade em disco ou S3 compatível.
-2. Criar cadastro real de vacas, lotes, piquetes e fornecedores.
-3. Transformar estoque e calendário em endpoints persistidos.
-4. Adicionar autenticação por propriedade.
-5. Criar receptor LoRa no Raspberry Pi publicando leituras em `/api/readings`.
-6. Separar frontend em React/Vite quando o protótipo visual estiver aprovado.
+Os módulos de estoque, documentos, planejamento, ranking e piquetes ainda usam dados de demonstração no frontend. O próximo passo é transformar essas áreas em entidades persistidas na API, com endpoints próprios e banco de dados simples.
