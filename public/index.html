@@ -1,36 +1,13 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Noryn Agro · Painel</title>
-  <link rel="stylesheet" href="/styles.css" />
-</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Noryn Agro · Painel</title><link rel="stylesheet" href="/styles.css"></head>
 <body data-page="dashboard">
-  <main class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="/"><span class="brand-mark">N</span><span><strong>Noryn Agro</strong><small>Gestão leiteira de precisão</small></span></a>
-      <nav class="main-nav" aria-label="Navegação principal">
-        <a data-nav="dashboard" href="/">Painel</a>
-        <a data-nav="paddocks" href="/paddocks.html">Piquetes</a>
-        <a data-nav="inventory" href="/inventory.html">Estoque</a>
-        <a data-nav="planning" href="/planning.html">Planejamento</a>
-        <a data-nav="documents" href="/documents.html">Documentos</a>
-      </nav>
-      <button class="soft-button" id="refreshButton" type="button">Atualizar</button>
-    </header>
-
-    <section class="hero hero-light">
-      <div>
-        <p class="eyebrow">Painel geral</p>
-        <h1>Uma visão simples da fazenda, sem complicar a rotina.</h1>
-        <p class="subtitle">Acompanhe produção, conforto térmico, piquetes, clima, estoque e tarefas em páginas separadas e fáceis de entender.</p>
-      </div>
-      <div class="hero-summary"><span class="status-dot"></span><strong>Demo conectada</strong><small>8 estações LoRa simuladas</small></div>
-    </section>
-
-    <section class="grid kpis" id="summaryCards"></section>
-
-    <section class="grid two-columns">
-      <article class="panel">
-        <div class="section-heading"><div><p class="eyebrow">Decisão do dia
+<main class="app-shell">
+<header class="topbar"><a class="brand" href="/"><span class="brand-mark">N</span><span><strong>Noryn Agro</strong><small>Gestão leiteira de precisão</small></span></a><nav class="main-nav"><a data-nav="dashboard" href="/">Painel</a><a data-nav="paddocks" href="/paddocks.html">Piquetes</a><a data-nav="inventory" href="/inventory.html">Estoque</a><a data-nav="planning" href="/planning.html">Planejamento</a><a data-nav="documents" href="/documents.html">Documentos</a></nav><button class="soft-button" id="refreshButton">Atualizar</button></header>
+<section class="hero"><div><p class="eyebrow">Painel geral</p><h1>Uma visão simples da fazenda, sem complicar a rotina.</h1><p class="subtitle">Produção, clima, piquetes, estoque e tarefas em páginas separadas, com linguagem operacional para a equipe da fazenda.</p></div><div class="hero-summary"><span class="status-dot"></span><strong>Demo conectada</strong><small>8 estações LoRa simuladas</small></div></section>
+<section class="grid kpis" id="summaryCards"></section>
+<section class="grid two-columns"><article class="panel"><div class="section-heading"><div><p class="eyebrow">Decisão do dia</p><h2>Alertas operacionais</h2></div><a class="text-link" href="/planning.html">Ver agenda</a></div><div id="alerts"></div></article><article class="panel"><div class="section-heading"><div><p class="eyebrow">Produção</p><h2>Últimos 7 dias</h2></div><span class="chip">Tanque diário</span></div><div class="chart" id="milkChart"></div><form class="quick-form" id="milkForm"><label>Litros hoje<input name="milkLiters" type="number" min="0" step="0.1" placeholder="1000" required></label><label>Vacas em lactação<input name="lactatingCows" type="number" min="1" step="1" placeholder="60" required></label><button>Registrar</button></form></article></section>
+<section class="grid three-columns"><a class="module-card" href="/paddocks.html"><span>🌱</span><strong>Piquetes</strong><small>Qual área está em uso, umidade e irrigação.</small></a><a class="module-card" href="/inventory.html"><span>📦</span><strong>Estoque</strong><small>Ração, medicamentos, insumos e compras.</small></a><a class="module-card" href="/planning.html"><span>📅</span><strong>Planejamento</strong><small>Manejos, manutenção e tarefas da semana.</small></a></section>
+<section class="grid two-columns"><article class="panel"><div class="section-heading"><div><p class="eyebrow">Clima</p><h2>Condição atual</h2></div><span class="chip">Estação principal</span></div><div class="weather-simple"><div class="weather-illustration"><div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div><div class="rain"><i></i><i></i><i></i><i></i><i></i></div><div class="wind-lines"><i></i><i></i><i></i></div></div><div class="weather-values"><div><span>Temperatura</span><strong id="wTemp">—</strong></div><div><span>Umidade</span><strong id="wHum">—</strong></div><div><span>Vento</span><strong id="wWind">—</strong></div><div><span>Chuva 24h</span><strong id="wRain">—</strong></div></div></div></article><article class="panel"><div class="section-heading"><div><p class="eyebrow">Ranking interno</p><h2>Melhores produtoras</h2></div><span class="chip">Top 5</span></div><div id="rankingList"></div></article></section>
+<section class="panel"><div class="section-heading"><div><p class="eyebrow">Telemetria</p><h2>Últimas leituras recebidas</h2></div><span class="chip">API /api/readings</span></div><div class="table-wrapper"><table><thead><tr><th>Data</th><th>Tipo</th><th>Fonte</th><th>Produção</th><th>THI</th><th>Solo</th><th>Chuva</th></tr></thead><tbody id="readingsTable"></tbody></table></div></section>
+</main><script src="/app.js"></script></body></html>
