@@ -1,89 +1,21 @@
-const summaryCards = document.querySelector('#summaryCards');
-const alertsEl = document.querySelector('#alerts');
-const readingsTable = document.querySelector('#readingsTable');
-const refreshButton = document.querySelector('#refreshButton');
-const milkForm = document.querySelector('#milkForm');
-const sensorForm = document.querySelector('#sensorForm');
-
-async function api(path, options) {
-  const response = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
-    throw new Error(error.error || 'Erro na API');
-  }
-  return response.json();
-}
-
-function formatNumber(value, suffix = '') {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
-  return `${Number(value).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}${suffix}`;
-}
-
-function formatDate(value) {
-  return new Date(value).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-}
-
-function renderCards(summary) {
-  const { totals } = summary;
-  const cards = [
-    { label: 'Último tanque', value: formatNumber(totals.lastMilkLiters, ' L'), detail: `${totals.lastLactatingCows || '—'} vacas em lactação` },
-    { label: 'Média 7 dias', value: formatNumber(totals.avgMilk7d, ' L'), detail: 'produção diária' },
-    { label: 'Litros/vaca', value: formatNumber(totals.avgLitersPerCow7d, ' L'), detail: 'média dos últimos registros' },
-    { label: 'THI máx. 24h', value: formatNumber(totals.maxThi24h), detail: `chuva 24h: ${formatNumber(totals.rain24h, ' mm')}` },
-  ];
-  summaryCards.innerHTML = cards.map((card) => `<article class="card"><span>${card.label}</span><strong>${card.value}</strong><small>${card.detail}</small></article>`).join('');
-}
-
-function renderAlerts(alerts) {
-  if (!alerts.length) {
-    alertsEl.innerHTML = '<div class="alert"><strong>Nenhum alerta ativo</strong><p>Os dados atuais não indicam ação urgente.</p></div>';
-    return;
-  }
-  alertsEl.innerHTML = alerts.map((alert) => `<div class="alert ${alert.severity}"><strong>${alert.title}</strong><p>${alert.message}</p></div>`).join('');
-}
-
-function renderReadings(readings) {
-  readingsTable.innerHTML = readings.map((reading) => `
-    <tr>
-      <td>${formatDate(reading.timestamp)}</td>
-      <td><strong>${reading.type}</strong></td>
-      <td>${reading.source}</td>
-      <td>${reading.milkLiters ? `${formatNumber(reading.milkLiters, ' L')}` : '—'}</td>
-      <td>${reading.thi ? `${formatNumber(reading.thi)} (${reading.thermalStatus})` : '—'}</td>
-      <td>${reading.soilMoisturePct ? formatNumber(reading.soilMoisturePct, '%') : '—'}</td>
-      <td>${reading.rainMm !== undefined ? formatNumber(reading.rainMm, ' mm') : '—'}</td>
-    </tr>
-  `).join('');
-}
-
-async function loadDashboard() {
-  const [summary, readings] = await Promise.all([api('/api/summary'), api('/api/readings?limit=20')]);
-  renderCards(summary);
-  renderAlerts(summary.alerts);
-  renderReadings(readings);
-}
-
-function formToPayload(form) {
-  return Object.fromEntries([...new FormData(form).entries()].filter(([, value]) => value !== ''));
-}
-
-milkForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const payload = { ...formToPayload(milkForm), type: 'milk', source: 'tanque' };
-  await api('/api/readings', { method: 'POST', body: JSON.stringify(payload) });
-  milkForm.reset();
-  await loadDashboard();
-});
-
-sensorForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  await api('/api/readings', { method: 'POST', body: JSON.stringify(formToPayload(sensorForm)) });
-  sensorForm.reset();
-  await loadDashboard();
-});
-
-refreshButton.addEventListener('click', loadDashboard);
-
-loadDashboard().catch((error) => {
-  document.body.innerHTML = `<main class="panel"><h1>Erro ao carregar</h1><p>${error.message}</p></main>`;
-});
+const page=document.body.dataset.page;const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];const fmt=(v,s='',d=1)=>v==null||Number.isNaN(Number(v))?'—':`${Number(v).toLocaleString('pt-BR',{maximumFractionDigits:d})}${s}`;
+const paddocks=[['P-01','Mombaça',31,25.8,'Ponto ideal',2.2,'Ontem · 42 min',[29,30,31,31]],['P-02','Tifton 85',27,26.2,'Monitorar',1.8,'Hoje · 28 min',[34,31,29,27]],['P-03','Zuri',24,26.8,'Atenção',2.5,'Há 2 dias',[31,29,26,24]],['P-04','Zuri',18,27.4,'Irrigar hoje',2.1,'Pendente',[28,25,22,18]],['P-05','Tamani',34,24.9,'Muito bom',2.4,'Hoje · 50 min',[25,28,32,34]],['P-06','Mombaça',28,26.1,'Ponto ideal',2.0,'Ontem · 35 min',[24,26,27,28]],['P-07','Tifton 85',22,27.1,'Pré-alerta',1.7,'Há 2 dias',[30,27,24,22]],['P-08','Capiaçu',39,25.1,'Recuperação',3.7,'Hoje · 65 min',[32,35,37,39]]].map(([id,forage,moisture,temp,status,area,irrigation,history])=>({id,forage,moisture,temp,status,area,irrigation,history}));
+const ranking=[['NORYN 1432','Alta produção',34.8,68,'+12% acima da média'],['NORYN 1189','Alta produção',32.6,82,'pico estável'],['NORYN 0974','Lote 2',30.9,55,'resposta positiva à dieta'],['NORYN 1511','Alta produção',29.7,111,'persistência boa'],['NORYN 1033','Lote 2',28.4,94,'monitorar CCS']];
+let inventory=[['Ração lactação 22%','Ração',4200,'kg',1800,320,'Coop. Regional','2026-09-20',2.74],['Núcleo mineral','Insumo',680,'kg',250,38,'Nutrição Forte','2027-01-15',5.1],['Silagem de milho','Volumoso',118,'t',45,2.4,'Produção própria','2027-02-01',210],['Antibiótico intramamário','Medicamento',36,'un',20,.4,'Veterinário','2026-08-05',42],['Pré-dipping iodado','Higiene',84,'L',35,4.5,'Ordenha Limpa','2026-08-18',18.5],['Fertilizante 20-05-20','Insumo',28,'sacas',12,.7,'Agro Minas','2026-12-10',168],['Sal proteinado recria','Ração',940,'kg',400,26,'Coop. Regional','2026-10-02',3.2],['Vacina clostridioses','Medicamento',18,'doses',30,.2,'Veterinário','2026-07-30',7.5]].map(([name,cat,qty,unit,min,use,supplier,expiry,cost])=>({name,cat,qty,unit,min,use,supplier,expiry,cost}));
+let documents=[['Analise solo - piquetes irrigados.pdf','Solo','PDF','1,8 MB','2026-07-02'],['Nota fiscal racao lactacao.xlsx','Financeiro','XLSX','248 KB','2026-07-09'],['Receituario veterinario - mastite.pdf','Veterinário','PDF','620 KB','2026-07-12']].map(([name,category,type,size,date])=>({name,category,type,size,date}));
+const tasks=[['Seg','Coleta CCS/CBT','Qualidade do leite','blue'],['Ter','Revisão aspersores','Conforto térmico','warn'],['Qua','IATF lote 2','Reprodução',''],['Qui','Compra pré-dipping','Estoque','warn'],['Sex','Adubação P-05','Pastagem',''],['Sáb','Conferir silagem','Alimentação','blue'],['Dom','Rotina reduzida','Operação','']];
+async function api(path,opt){const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opt});if(!r.ok)throw new Error('Erro na API');return r.json()}function date(v){return new Date(v).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}
+function setActiveNav(){$$('[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===page))}
+function cards(summary){const t=summary.totals||{},c=summary.latestByType?.comfort||{},soil=paddocks.reduce((a,p)=>a+p.moisture,0)/paddocks.length;const data=[['Último tanque',fmt(t.lastMilkLiters,' L'),`${t.lastLactatingCows||'—'} vacas em lactação`,''],['Litros/vaca',fmt(t.avgLitersPerCow7d,' L'),'média móvel 7 dias',t.avgLitersPerCow7d<18?'warn':''],['THI conforto',fmt(c.thi||t.maxThi24h),c.thermalStatus||'status térmico',(c.thi||0)>=78?'bad':'warn'],['Umidade média',fmt(soil,'%'),'8 piquetes monitorados',soil<25?'bad':'blue'],['Chuva 24h',fmt(t.rain24h,' mm'),'pluviômetro principal','blue'],['Estoque crítico','3 itens','comprar ou revisar','warn'],['Agenda da semana','7 tarefas','manejo e manutenção',''],['Top produtora','34,8 L','NORYN 1432','']];$('#summaryCards')&&(summaryCards.innerHTML=data.map(c=>`<article class="card ${c[3]}"><span>${c[0]}</span><strong>${c[1]}</strong><small>${c[2]}</small></article>`).join(''))}
+function alerts(list=[]){if(!$('#alerts'))return;const extra=[{severity:'medium',title:'Piquete P-04 abaixo da faixa',message:'Umidade em 18%. Priorizar irrigação antes do próximo pastejo.'},{severity:'info',title:'Estoque com atenção',message:'Vacina e antibiótico estão abaixo do ponto ideal ou próximos do vencimento.'}];$('#alerts').innerHTML=[...list,...extra].map(a=>`<div class="alert ${a.severity}"><strong>${a.title}</strong><p>${a.message}</p></div>`).join('')}
+function chart(readings=[]){if(!$('#milkChart'))return;const milk=readings.filter(r=>r.type==='milk'&&Number.isFinite(r.milkLiters)).slice(0,7).reverse();const max=Math.max(...milk.map(r=>r.milkLiters),1100);$('#milkChart').innerHTML=milk.map(r=>`<div class="bar" style="height:${Math.max(12,(r.milkLiters/max)*100)}%"><span>${Math.round(r.milkLiters)}L</span></div>`).join('')}
+function weather(summary){if(!$('#wTemp'))return;const w=summary.latestByType?.weather||{};$('#wTemp').textContent=fmt(w.temperatureC??31.8,' °C');$('#wHum').textContent=fmt(w.humidityPct??58,'%');$('#wWind').textContent=fmt(w.windKmh??12,' km/h');$('#wRain').textContent=fmt(summary.totals?.rain24h??4.8,' mm')}
+function rank(){if(!$('#rankingList'))return;$('#rankingList').innerHTML=ranking.map((r,i)=>`<div class="rank"><div class="badge">${i+1}</div><div><strong>${r[0]}</strong><p>${r[1]} · ${r[3]} dias em lactação · ${r[4]}</p></div><strong>${fmt(r[2],' L')}</strong></div>`).join('')}
+function readingsTable(readings=[]){if(!$('#readingsTable'))return;$('#readingsTable').innerHTML=readings.slice(0,20).map(r=>`<tr><td>${date(r.timestamp)}</td><td>${r.type}</td><td>${r.source}</td><td>${r.milkLiters?fmt(r.milkLiters,' L'):'—'}</td><td>${r.thi?fmt(r.thi):'—'}</td><td>${r.soilMoisturePct?fmt(r.soilMoisturePct,'%'):'—'}</td><td>${r.rainMm!=null?fmt(r.rainMm,' mm'):'—'}</td></tr>`).join('')}
+function renderPaddock(id='P-04'){const p=paddocks.find(x=>x.id===id)||paddocks[0];$$('.paddock').forEach(b=>b.classList.toggle('active',b.dataset.p===p.id));$('#paddockName')&&($('#paddockName').textContent=`${p.id} · ${p.forage}`);$('#paddockMoisture')&&($('#paddockMoisture').textContent=`${p.moisture}%`);$('#paddockBar')&&($('#paddockBar').style.width=`${Math.min(100,p.moisture*2)}%`);$('#paddockTemp')&&($('#paddockTemp').textContent=fmt(p.temp,' °C'));$('#paddockStatus')&&($('#paddockStatus').textContent=p.status);$('#paddockInfo')&&($('#paddockInfo').innerHTML=[['Área',`${p.area.toLocaleString('pt-BR')} ha`],['Última irrigação',p.irrigation],['Histórico 4 dias',p.history.map(x=>x+'%').join(' → ')],['Próxima ação',p.moisture<22?'Abrir janela de irrigação':'Aguardar leitura da tarde']].map(x=>`<div class="metric-box"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join(''))}
+function paddockCards(){if(!$('#paddockCards'))return;$('#paddockCards').innerHTML=paddocks.map(p=>`<article class="card ${p.moisture<22?'bad':p.moisture<26?'warn':'blue'}"><span>${p.id} · ${p.forage}</span><strong>${p.moisture}%</strong><small>${p.status} · ${p.area} ha</small></article>`).join('')}
+function inventoryStatus(i){const days=i.qty/i.use;return days<7?['Crítico','stock-bad']:days<14?['Atenção','stock-warn']:['Ok','stock-ok']}function renderInventory(){if(!$('#inventoryList'))return;const q=($('#inventorySearch')?.value||'').toLowerCase(),cat=$('#inventoryCategory')?.value||'todos';const list=inventory.filter(i=>(cat==='todos'||i.cat===cat)&&`${i.name} ${i.cat} ${i.supplier}`.toLowerCase().includes(q));const total=inventory.reduce((s,i)=>s+i.qty*i.cost,0);const crit=inventory.filter(i=>i.qty/i.use<14).length;$('#inventoryKpis').innerHTML=[['Valor estimado',fmt(total,' R$',0).replace(' R$',''),'custo aproximado em estoque'],['Itens críticos',crit,'abaixo de 14 dias'],['Categorias',new Set(inventory.map(i=>i.cat)).size,'ração, insumos e medicamentos'],['Validade curta',2,'vence nos próximos 45 dias']].map(k=>`<article class="card ${k[1]>2?'warn':''}"><span>${k[0]}</span><strong>${k[0]==='Valor estimado'?'R$ ':''}${k[1]}</strong><small>${k[2]}</small></article>`).join('');$('#inventoryList').innerHTML=list.map(i=>{const [s,cls]=inventoryStatus(i),days=Math.floor(i.qty/i.use);return `<div class="inventory-row"><div><strong>${i.name}</strong><small>${i.cat} · ${i.supplier}</small></div><div><small>Quantidade</small><strong>${fmt(i.qty,' '+i.unit,1)}</strong></div><div><small>Consumo/dia</small><strong>${fmt(i.use,' '+i.unit,1)}</strong></div><div><small>Autonomia</small><strong>${days} dias</strong></div><div><small>Validade</small><strong>${new Date(i.expiry).toLocaleDateString('pt-BR')}</strong></div><div class="stock-status ${cls}">${s}</div></div>`}).join('');$('#purchaseSuggestions').innerHTML=inventory.filter(i=>i.qty/i.use<14).map(i=>`<div class="purchase"><div><strong>${i.name}</strong><p>Estoque atual dura ${Math.floor(i.qty/i.use)} dias. Comprar para 30 dias de uso.</p></div><strong>${fmt(Math.max(0,i.use*30-i.qty),' '+i.unit,1)}</strong></div>`).join('')||'<div class="alert info"><strong>Nenhuma compra urgente</strong><p>Estoque acima da faixa mínima.</p></div>';$('#expiryList').innerHTML=inventory.filter(i=>['Medicamento','Higiene'].includes(i.cat)).map(i=>`<div class="purchase"><div><strong>${i.name}</strong><p>${i.cat} · fornecedor ${i.supplier}</p></div><strong>${new Date(i.expiry).toLocaleDateString('pt-BR')}</strong></div>`).join('');$('#movementTable').innerHTML=[['16/07','Ração lactação 22%','Saída','320 kg','João','Trato lote alta produção'],['15/07','Pré-dipping iodado','Saída','4,5 L','Maria','Ordenha manhã/tarde'],['14/07','Silagem de milho','Saída','2,4 t','Equipe','Cocho coletivo'],['12/07','Núcleo mineral','Entrada','300 kg','Compras','NF lançada']].map(m=>`<tr>${m.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}
+function calendar(){if(!$('#calendar'))return;$('#calendar').innerHTML=tasks.map(t=>`<div class="day"><strong>${t[0]}</strong><div class="event ${t[3]}">${t[1]}<br><small>${t[2]}</small></div></div>`).join('');$('#taskList')&&($('#taskList').innerHTML=tasks.slice(0,5).map(t=>`<div class="task"><div class="badge">${t[0][0]}</div><div><strong>${t[1]}</strong><p>${t[2]}</p></div><span class="chip">${t[0]}</span></div>`).join(''))}
+function docs(){if(!$('#documentList'))return;$('#documentList').innerHTML=documents.map(d=>`<article class="document-card"><strong>${d.name}</strong><small>${d.category} · ${d.type} · ${d.size}</small><p>Adicionado em ${new Date(d.date).toLocaleDateString('pt-BR')}</p></article>`).join('');$('#documentInput')?.addEventListener('change',e=>{documents=[...e.target.files].map(f=>({name:f.name,category:'Novo upload',type:f.name.split('.').pop()?.toUpperCase()||'ARQ',size:`${Math.max(1,Math.round(f.size/1024))} KB`,date:new Date().toISOString()})).concat(documents);docs()},{once:true})}
+function bindForms(){const f=$('#milkForm');f?.addEventListener('submit',async e=>{e.preventDefault();const p=Object.fromEntries(new FormData(f).entries());await api('/api/readings',{method:'POST',body:JSON.stringify({...p,type:'milk',source:'tanque'})});f.reset();load()});const sf=$('#sensorForm');sf?.addEventListener('submit',async e=>{e.preventDefault();const p=Object.fromEntries([...new FormData(sf).entries()].filter(([,v])=>v!==''));await api('/api/readings',{method:'POST',body:JSON.stringify(p)});sf.reset();load()});$('#stockBtn')?.addEventListener('click',()=>{inventory=inventory.map(i=>({...i,qty:Math.max(0,Number((i.qty-i.use).toFixed(1)))}));renderInventory()});$('#inventorySearch')?.addEventListener('input',renderInventory);$('#inventoryCategory')?.addEventListener('change',renderInventory);$$('.paddock').forEach(b=>b.addEventListener('click',()=>renderPaddock(b.dataset.p)));$('#refreshButton')?.addEventListener('click',load)}
+async function load(){let summary={totals:{},latestByType:{},alerts:[]},readings=[];try{[summary,readings]=await Promise.all([api('/api/summary'),api('/api/readings?limit=30')])}catch(e){console.warn(e)}cards(summary);alerts(summary.alerts||[]);chart(readings);weather(summary);rank();readingsTable(readings);paddockCards();renderPaddock();renderInventory();calendar();docs()}setActiveNav();bindForms();load();
