@@ -1,15 +1,19 @@
 # Noryn Agro MVP
 
-MVP local para testar uma plataforma de gestão agropecuária com foco em pecuária leiteira de precisão.
+MVP local para testar uma plataforma vendável de pecuária leiteira de precisão.
 
-A primeira versão cruza quatro grupos de dados:
+A versão atual simula um **centro de comando da fazenda**, com:
 
-- produção diária de leite;
-- conforto térmico das vacas, com cálculo automático de THI;
-- clima local, chuva e vento;
-- umidade do solo e irrigação por piquete.
+- dashboard executivo de produção, conforto térmico, solo, chuva e vento;
+- mapa visual de piquetes com umidade, status, área, histórico e recomendação de manejo;
+- animações dinâmicas de chuva, vento, nuvens, sol e direção do vento;
+- ranking das melhores vacas produtoras;
+- controle visual de estoque para ração, medicamentos, higiene, volumoso e insumos;
+- área de upload visual de documentos da fazenda;
+- calendário operacional para CCS/CBT, IATF, vacinação, adubação, compras e manutenção;
+- API HTTP pronta para receber pacotes de sensores LoRa/Raspberry.
 
-A ideia é começar simples, com lançamento manual e API HTTP, e depois conectar o receptor LoRa/Raspberry Pi para receber os dados das unidades remotas.
+A ideia é começar com dados simulados e lançamento manual, validar a experiência do produto e depois conectar sensores reais.
 
 ## Como rodar
 
@@ -46,79 +50,17 @@ GET /api/summary
 ### Últimas leituras
 
 ```http
-GET /api/readings
-GET /api/readings?type=milk
-GET /api/readings?type=soil
-GET /api/readings?type=comfort
+GET /api/readings?limit=30
 ```
 
-### Criar leitura
+### Enviar leitura
 
 ```http
 POST /api/readings
 Content-Type: application/json
 ```
 
-Exemplo de produção de leite:
-
-```json
-{
-  "type": "milk",
-  "source": "tanque",
-  "milkLiters": 1000,
-  "lactatingCows": 60,
-  "notes": "Registro diário do tanque"
-}
-```
-
-Exemplo de conforto térmico:
-
-```json
-{
-  "type": "comfort",
-  "source": "curral-espera",
-  "temperatureC": 33.1,
-  "humidityPct": 64,
-  "notes": "Leitura próxima da ordenha da tarde"
-}
-```
-
-Exemplo de solo/piquete:
-
-```json
-{
-  "type": "soil",
-  "source": "piquete-03",
-  "soilMoisturePct": 24,
-  "soilTemperatureC": 25.5,
-  "depthCm": 20,
-  "irrigationMinutes": 0
-}
-```
-
-## Estrutura
-
-```text
-src/server.js       API HTTP, armazenamento JSON e cálculo de indicadores
-public/index.html   Dashboard
-public/styles.css   Interface
-public/app.js       Consumo da API e formulários
-data/readings.json  Base local criada em runtime
-```
-
-## Próximos passos
-
-1. Conectar o gateway LoRa na Raspberry Pi.
-2. Criar identificação das unidades remotas por `source`.
-3. Registrar produção individual por vaca.
-4. Adicionar cadastro de lotes, piquetes e animais.
-5. Calcular necessidade de irrigação por evapotranspiração e umidade do solo.
-6. Criar alertas por WhatsApp/Telegram.
-7. Sincronizar dados locais com uma API em nuvem.
-
-## Payload pensado para sensores LoRa
-
-O gateway LoRa pode transformar a mensagem recebida em um POST para `/api/readings`.
+Exemplo para estação meteorológica:
 
 ```json
 {
@@ -126,8 +68,44 @@ O gateway LoRa pode transformar a mensagem recebida em um POST para `/api/readin
   "source": "estacao-principal",
   "temperatureC": 31.8,
   "humidityPct": 58,
-  "rainMm": 0,
-  "windKmh": 8,
-  "batteryPct": 86
+  "rainMm": 4.8,
+  "windKmh": 12,
+  "windDirectionDeg": 45,
+  "batteryPct": 92
 }
 ```
+
+Exemplo para piquete:
+
+```json
+{
+  "type": "soil",
+  "source": "P-04",
+  "soilMoisturePct": 18,
+  "soilTemperatureC": 27.4,
+  "depthCm": 20,
+  "irrigationMinutes": 0,
+  "batteryPct": 79
+}
+```
+
+Exemplo para produção de leite:
+
+```json
+{
+  "type": "milk",
+  "source": "tanque",
+  "milkLiters": 1018,
+  "lactatingCows": 60,
+  "notes": "Tanque da manhã"
+}
+```
+
+## Próximos passos técnicos
+
+1. Persistir documentos de verdade em disco ou S3 compatível.
+2. Criar cadastro real de vacas, lotes, piquetes e fornecedores.
+3. Transformar estoque e calendário em endpoints persistidos.
+4. Adicionar autenticação por propriedade.
+5. Criar receptor LoRa no Raspberry Pi publicando leituras em `/api/readings`.
+6. Separar frontend em React/Vite quando o protótipo visual estiver aprovado.
